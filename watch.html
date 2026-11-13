@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="disabled-adaptations" content="watch" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta property="og:title" content="WatchAI — Wynik" />
+  <meta property="og:description" content="Dotknij na Apple Watch, aby odczytać najnowszą odpowiedź." />
+  <title>WatchAI</title>
+  <script src="./config.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #000000;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      color-scheme: dark;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    main {
+      padding: 6px 8px 26px;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .refresh-btn {
+      display: block;
+      width: 100%;
+      min-height: 42px;
+      border: none;
+      border-radius: 21px;
+      background: #0a84ff;
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    .refresh-btn:active {
+      background: #0066cc;
+    }
+
+    .refresh-btn:disabled {
+      background: #1c1c1e;
+      color: #8e8e93;
+    }
+
+    .meta {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 8px;
+      line-height: 1.3;
+    }
+
+    .content {
+      font-size: 17px;
+      line-height: 1.38;
+      color: #ffffff;
+    }
+
+    .content p {
+      margin: 0 0 9px;
+    }
+
+    .content ul {
+      margin: 0 0 9px;
+      padding-left: 16px;
+    }
+
+    .content li {
+      margin-bottom: 5px;
+    }
+
+    .content strong {
+      color: #60a5fa;
+      font-weight: 700;
+    }
+
+    .empty {
+      font-size: 15px;
+      color: #9ca3af;
+      line-height: 1.4;
+      padding: 8px 0;
+    }
+
+    .error {
+      font-size: 15px;
+      color: #ff6961;
+      line-height: 1.35;
+      padding: 6px 0;
+    }
+
+    .nav {
+      display: none;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #2c2c2e;
+    }
+
+    .nav.visible {
+      display: grid;
+    }
+
+    .nav-btn {
+      min-height: 36px;
+      border: 1px solid #3a3a3c;
+      border-radius: 18px;
+      background: #1c1c1e;
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.35;
+    }
+
+    .nav-count {
+      font-size: 12px;
+      color: #9ca3af;
+      text-align: center;
+      padding: 0 4px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <button id="refreshBtn" type="button" class="refresh-btn">↻ Odśwież</button>
+    <div id="meta" class="meta">Łączenie...</div>
+    <div id="output" class="content"></div>
+
+    <div id="historyNav" class="nav">
+      <button id="prevBtn" type="button" class="nav-btn">‹ Nowsze</button>
+      <span id="navCount" class="nav-count">1 / 1</span>
+      <button id="nextBtn" type="button" class="nav-btn">Starsze ›</button>
+    </div>
+  </main>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const watchId = (params.get("id") || "").trim().toLowerCase();
+    const workerUrl = (params.get("w") || window.APP_CONFIG?.WORKER_URL || "").trim().replace(/\/+$/, "");
+
+    const refreshBtn = document.getElementById("refreshBtn");
+    const metaEl = document.getElementById("meta");
+    const outputEl = document.getElementById("output");
+    const navEl = document.getElementById("historyNav");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const navCountEl = document.getElementById("navCount");
+
+    let items = [];
+    let currentIndex = 0;
+    let lastFetchTime = 0;
+    let isFetching = false;
+
+    function formatRelativeTime(ts) {
+      if (!ts) return "";
+      const diffSec = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+      const clock = new Date(ts).toLocaleTimeString("pl-PL", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+      if (diffSec < 60) return `${clock} (teraz)`;
+      const mins = Math.floor(diffSec / 60);
+      if (mins < 60) return `${clock} (${mins} min temu)`;
+      const hrs = Math.floor(mins / 60);
+      return `${clock} (${hrs} godz. temu)`;
+    }
+
+    // Bezpieczny parser tekstu (bez innerHTML -> zero ryzyka XSS lub rozbicia układu przez kod)
+    function appendFormattedText(parent, text) {
+      const parts = text.split(/(\*\*[^*]+\*\*)/g);
+      for (const part of parts) {
+        if (part.startsWith("**") && part.endsWith("**") && part.length > 4) {
+          const strong = document.createElement("strong");
+          strong.textContent = part.slice(2, -2);
+          parent.appendChild(strong);
+        } else {
+          parent.appendChild(document.createTextNode(part));
+        }
+      }
+    }
+
+    function renderAnswerText(rawText) {
+      outputEl.innerHTML = "";
+      outputEl.className = "content";
+
+      const lines = (rawText || "").replace(/\r\n/g, "\n").split("\n");
+      let currentUl = null;
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+        if (!line) {
+          currentUl = null;
+          continue;
+        }
+
+        const bulletMatch = line.match(/^[-*•]\s+(.*)$/);
+        if (bulletMatch) {
+          if (!currentUl) {
+            currentUl = document.createElement("ul");
+            outputEl.appendChild(currentUl);
+          }
+          const li = document.createElement("li");
+          appendFormattedText(li, bulletMatch[1]);
+          currentUl.appendChild(li);
+        } else {
+          currentUl = null;
+          const p = document.createElement("p");
+          appendFormattedText(p, line);
+          outputEl.appendChild(p);
+        }
+      }
+    }
+
+    function renderCurrentItem() {
+      if (!items.length) {
+        metaEl.textContent = "Brak aktywnych wyników";
+        outputEl.className = "empty";
+        outputEl.textContent = "Wyślij zdjęcie z iPhone'a i kliknij Odśwież.";
+        navEl.classList.remove("visible");
+        return;
+      }
+
+      if (currentIndex >= items.length) currentIndex = 0;
+      const item = items[currentIndex];
+      metaEl.textContent = formatRelativeTime(item.createdAt);
+      renderAnswerText(item.answer);
+
+      if (items.length > 1) {
+        navEl.classList.add("visible");
+        navCountEl.textContent = `${currentIndex + 1} / ${items.length}`;
+        prevBtn.disabled = currentIndex === 0;
+        nextBtn.disabled = currentIndex === items.length - 1;
+      } else {
+        navEl.classList.remove("visible");
+      }
+    }
+
+    async function fetchLatest() {
+      if (isFetching) return;
+
+      if (!/^[a-f0-9]{16}$/.test(watchId)) {
+        metaEl.textContent = "Błędny link";
+        outputEl.className = "error";
+        outputEl.textContent = "Brak parametru ?id=... Wyślij link ponownie z iPhone'a.";
+        return;
+      }
+
+      if (!workerUrl || workerUrl.includes("twoj-nick")) {
+        metaEl.textContent = "Brak konfiguracji";
+        outputEl.className = "error";
+        outputEl.textContent = "Ustaw WORKER_URL w pliku config.js.";
+        return;
+      }
+
+      isFetching = true;
+      refreshBtn.disabled = true;
+      refreshBtn.textContent = "Pobieram...";
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      try {
+        const res = await fetch(
+          `${workerUrl}/api/result?id=${encodeURIComponent(watchId)}&_=${Date.now()}`,
+          {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal
+          }
+        );
+
+        const data = await res.json();
+        if (!res.ok || !data?.ok) {
+          throw new Error(data?.error || `HTTP ${res.status}`);
+        }
+
+        lastFetchTime = Date.now();
+        items = Array.isArray(data.items) ? data.items : [];
+        currentIndex = 0;
+        renderCurrentItem();
+      } catch (err) {
+        metaEl.textContent = "Błąd połączenia";
+        if (!items.length) {
+          outputEl.className = "error";
+          outputEl.textContent = err.name === "AbortError"
+            ? "Przekroczono czas oczekiwania. Dotknij Odśwież."
+            : `Nie udało się pobrać (${err.message}).`;
+        }
+      } finally {
+        clearTimeout(timeoutId);
+        isFetching = false;
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = "↻ Odśwież";
+      }
+    }
+
+    refreshBtn.addEventListener("click", fetchLatest);
+
+    prevBtn.addEventListener("click", () => {
+      if (currentIndex > 0) {
+        currentIndex -= 1;
+        renderCurrentItem();
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (currentIndex < items.length - 1) {
+        currentIndex += 1;
+        renderCurrentItem();
+      }
+    });
+
+    // Po podniesieniu nadgarstka i powrocie do karty sprawdza aktualizację
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && Date.now() - lastFetchTime > 8000) {
+        fetchLatest();
+      }
+    });
+
+    fetchLatest();
+  </script>
+</body>
+</html>
