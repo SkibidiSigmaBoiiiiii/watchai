@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="WatchAI" />
+  <meta name="theme-color" content="#0b0c10" />
+  <title>WatchAI — Wysyłanie na Apple Watch</title>
+  <script src="./config.js"></script>
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --card: #16181f;
+      --card-2: #1f222c;
+      --border: #2a2e3b;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #0a84ff;
+      --accent-hover: #0070e0;
+      --green: #30d158;
+      --red: #ff453a;
+      --orange: #ff9f0a;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: env(safe-area-inset-top, 16px) 16px calc(env(safe-area-inset-bottom, 16px) + 28px);
+    }
+
+    .app {
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0a84ff, #5e5ce6);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    h1 {
+      font-size: 19px;
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .icon-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--muted);
+      margin: 0 0 10px;
+    }
+
+    .photo-actions {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      color: #fff;
+      background: var(--accent);
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .btn:active { transform: scale(0.985); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-secondary {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-success {
+      background: #1f8b4c;
+    }
+
+    .btn-danger {
+      background: rgba(255, 69, 58, 0.16);
+      border: 1px solid rgba(255, 69, 58, 0.35);
+      color: #ff6961;
+    }
+
+    .btn-small {
+      padding: 10px 12px;
+      font-size: 14px;
+      border-radius: 11px;
+    }
+
+    .preview-box {
+      margin-top: 12px;
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      border: 1px solid var(--border);
+      display: none;
+    }
+
+    .preview-box.visible { display: block; }
+
+    .preview-box img {
+      width: 100%;
+      max-height: 280px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .preview-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(22, 24, 31, 0.92);
+    }
+
+    .clear-img {
+      background: none;
+      border: none;
+      color: var(--red);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      padding: 2px 6px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .chip {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      background: rgba(10, 132, 255, 0.22);
+      border-color: var(--accent);
+      color: #60a5fa;
+    }
+
+    textarea, input[type="text"], input[type="password"], input[type="url"], select {
+      width: 100%;
+      background: #0e1015;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      padding: 11px 12px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .status {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 14px;
+      margin-bottom: 14px;
+      font-weight: 500;
+    }
+
+    .status.visible { display: block; }
+    .status.info { background: rgba(10, 132, 255, 0.16); border: 1px solid rgba(10, 132, 255, 0.4); color: #93c5fd; }
+    .status.ok { background: rgba(48, 209, 88, 0.15); border: 1px solid rgba(48, 209, 88, 0.4); color: #86efac; }
+    .status.err { background: rgba(255, 69, 58, 0.15); border: 1px solid rgba(255, 69, 58, 0.4); color: #fca5a5; }
+
+    .answer-box {
+      white-space: pre-wrap;
+      font-size: 15px;
+      line-height: 1.5;
+      background: #000;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 8px;
+    }
+
+    .watch-link-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .url-pill {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 12px;
+      background: #0e1015;
+      border: 1px solid var(--border);
+      padding: 9px 10px;
+      border-radius: 10px;
+      word-break: break-all;
+      color: #cbd5e1;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="brand-badge">⌚</div>
+        <div>
+          <h1>WatchAI</h1>
+          <div class="subtitle">BYOK • iPhone → Apple Watch (24h)</div>
+        </div>
+      </div>
+      <button type="button" class="icon-btn" id="toggleSettingsBtn">⚙️ Ustawienia</button>
+    </header>
+
+    <div id="statusBanner" class="status"></div>
+
+    <!-- PANEL USTAWIEŃ -->
+    <section id="settingsCard" class="card hidden">
+      <h2 class="card-title">Konfiguracja (zapisywana lokalnie w telefonie)</h2>
+
+      <div class="field">
+        <label for="apiKeyInput">Twój klucz Gemini API (BYOK)</label>
+        <input id="apiKeyInput" type="password" placeholder="AIzaSy..." autocomplete="off" />
+        <div class="hint">
+          Darmowy klucz wygenerujesz na <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:#60a5fa;">aistudio.google.com</a>. Klucz zostaje wyłącznie w pamięci Twojego iPhone'a.
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="workerUrlInput">Adres Cloudflare Workera</label>
+        <input id="workerUrlInput" type="url" placeholder="https://watch-ai-worker.twoj-nick.workers.dev" />
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label for="modelSelect">Model Gemini</label>
+          <select id="modelSelect">
+            <option value="gemini-4-hydrogen">gemini-4-hydrogen (Najnowszy)</option>
+            <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Najszybszy / Wysoki limit)</option>
+            <option value="gemini-3.8-flash">gemini-3.8-flash (Flash)</option>
+            <option value="custom">Własny model...</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="thinkingSelect">Tryb myślenia</label>
+          <select id="thinkingSelect">
+            <option value="fast">Szybki (polecane na Watch)</option>
+            <option value="balanced">Zbalansowany</option>
+            <option value="deep">Dokładny (wolniejszy)</option>
+            <option value="auto">Domyślny modelu</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="customModelField" class="field hidden">
+        <label for="customModelInput">Własna nazwa modelu API</label>
+        <input id="customModelInput" type="text" placeholder="np. gemini-4-hydrogen" />
+      </div>
+
+      <div class="field">
+        <label for="senderSecretInput">Twój prywatny kod nadawcy (generuje link na Watch)</label>
+        <div style="display:flex; gap:8px;">
+          <input id="senderSecretInput" type="text" autocomplete="off" />
+          <button type="button" id="regenSecretBtn" class="icon-btn" title="Wygeneruj nowy kod">🎲</button>
+        </div>
+        <div class="hint">Jeśli wygenerujesz nowy kod, wyślij zaktualizowany link na zegarek.</div>
+      </div>
+
+      <div class="field">
+        <label for="accessCodeInput">Opcjonalny kod Workera (tylko jeśli ustawiłeś WORKER_ACCESS_CODE)</label>
+        <input id="accessCodeInput" type="password" placeholder="Zostaw puste, jeśli nie używasz" />
+      </div>
+
+      <button type="button" id="saveSettingsBtn" class="btn">💾 Zapisz ustawienia</button>
+    </section>
+
+    <!-- GŁÓWNA KARTA WYSYŁKI -->
+    <section class="card">
+      <h2 class="card-title">1. Wybierz zdjęcie lub zrób fotkę</h2>
+
+      <input id="photoPickerInput" type="file" accept="image/*" class="hidden" />
+      <input id="cameraDirectInput" type="file" accept="image/*" capture="environment" class="hidden" />
+
+      <div class="photo-actions">
+        <button type="button" id="pickPhotoBtn" class="btn">📷 Zrób zdjęcie / Galeria</button>
+        <button type="button" id="directCameraBtn" class="btn btn-secondary" style="width:auto;" title="Natychmiast otwórz aparat">⚡ Aparat</button>
+      </div>
+
+      <div id="previewBox" class="preview-box">
+        <img id="previewImg" alt="Podgląd zdjęcia" />
+        <div class="preview-meta">
+          <span id="compressionInfo">Gotowe</span>
+          <button type="button" id="clearPhotoBtn" class="clear-img">✕ Usuń</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-title">2. Szybki tryb lub pytanie</h2>
+
+      <div class="chips" id="presetChips">
+        <button type="button" class="chip active" data-preset="short">📝 Krótko (Watch)</button>
+        <button type="button" class="chip" data-preset="answer_only">🎯 Tylko wynik</button>
+        <button type="button" class="chip" data-preset="explain">📚 Krok po kroku</button>
+        <button type="button" class="chip" data-preset="translate">🌐 Przetłumacz PL</button>
+      </div>
+
+      <textarea id="promptInput" placeholder="Opcjonalnie doprecyzuj (np. 'Rozwiąż tylko zadanie 3') albo wpisz pytanie bez zdjęcia..."></textarea>
+
+      <div style="margin-top: 12px;">
+        <button type="button" id="solveBtn" class="btn btn-success">🚀 Rozwiąż i wyślij na zegarek</button>
+      </div>
+    </section>
+
+    <!-- PODGLĄD WYNIKU NA IPHONE -->
+    <section id="resultCard" class="card hidden">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 class="card-title" style="margin:0;">Ostatnia odpowiedź (już na zegarku)</h2>
+        <span id="resultMeta" class="subtitle"></span>
+      </div>
+      <div id="answerPreview" class="answer-box"></div>
+    </section>
+
+    <!-- LINK NA APPLE WATCH -->
+    <section class="card">
+      <h2 class="card-title">⌚ Link na Apple Watch</h2>
+      <div class="watch-link-box">
+        <div id="watchUrlDisplay" class="url-pill">Uzupełnij ustawienia, aby wygenerować link...</div>
+        <div class="row-2">
+          <button type="button" id="shareWatchBtn" class="btn btn-secondary btn-small">💬 Wyślij na zegarek</button>
+          <button type="button" id="copyWatchBtn" class="btn btn-secondary btn-small">📋 Kopiuj link</button>
+        </div>
+        <div class="row-2">
+          <a id="openWatchLink" href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-small" style="text-decoration:none;">👀 Podgląd widoku Watch</a>
+          <button type="button" id="clearWatchBtn" class="btn btn-danger btn-small">🗑️ Wyczyść zegarek</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const LS = {
+      API_KEY: "watchai_api_key",
+      SECRET: "watchai_sender_secret",
+      WORKER: "watchai_worker_url",
+      MODEL: "watchai_model",
+      CUSTOM_MODEL: "watchai_custom_model",
+      THINKING: "watchai_thinking",
+      ACCESS_CODE: "watchai_access_code"
+    };
+
+    const PRESETS = {
+      short: "Przeanalizuj treść i podaj zwięzłą, konkretną odpowiedź gotową do szybkiego przeczytania na Apple Watch.",
+      answer_only: "Podaj WYŁĄCZNIE ostateczną odpowiedź (np. samą literę ABCD, sam wynik liczbowy albo 1 najkrótsze zdanie). Bez wyjaśnień.",
+      explain: "Rozwiąż zadanie krok po kroku w maksymalnie 5 krótkich punktach. W pierwszej linijce podaj sam wynik.",
+      translate: "Przetłumacz tekst ze zdjęcia na naturalny język polski. Jeśli jest długi, streść najważniejsze informacje."
+    };
+
+    let selectedPreset = "short";
+    let compressedImage = null; // { base64, mimeType, previewUrl }
+    let currentWatchUrl = "";
+
+    const el = (id) => document.getElementById(id);
+
+    function showStatus(text, type = "info") {
+      const banner = el("statusBanner");
+      banner.textContent = text;
+      banner.className = `status visible ${type}`;
+    }
+
+    function hideStatus() {
+      el("statusBanner").className = "status";
+    }
+
+    function generateRandomSecret(len = 24) {
+      const chars = "abcdefghijkmnpqrstuvwxyz23456789";
+      const arr = new Uint8Array(len);
+      crypto.getRandomValues(arr);
+      return Array.from(arr, (x) => chars[x % chars.length]).join("");
+    }
+
+    function normalizeWorkerUrl(url) {
+      return (url || "").trim().replace(/\/+$/, "");
+    }
+
+    async function getWatchId(senderSecret, workerUrl) {
+      if (window.crypto && window.crypto.subtle) {
+        const data = new TextEncoder().encode(`${senderSecret}:watch-v1`);
+        const hash = await crypto.subtle.digest("SHA-256", data);
+        return Array.from(new Uint8Array(hash).slice(0, 8))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+      }
+      // Fallback dla testów po zwykłym HTTP w sieci lokalnej
+      if (!workerUrl) return "";
+      const res = await fetch(`${workerUrl}/api/watch-id`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ senderSecret })
+      });
+      const json = await res.json();
+      return json?.watchId || "";
+    }
+
+    async function refreshWatchUrlDisplay() {
+      const secret = localStorage.getItem(LS.SECRET) || "";
+      const worker = normalizeWorkerUrl(localStorage.getItem(LS.WORKER) || window.APP_CONFIG?.WORKER_URL || "");
+      if (!secret) return;
+
+      const watchId = await getWatchId(secret, worker);
+      if (!watchId) {
+        el("watchUrlDisplay").textContent = "Nie udało się wyliczyć ID (sprawdź HTTPS lub adres Workera).";
+        return;
+      }
+
+      const base = new URL("./watch.html", window.location.href);
+      base.searchParams.set("id", watchId);
+      currentWatchUrl = base.toString();
+
+      el("watchUrlDisplay").textContent = currentWatchUrl;
+      el("openWatchLink").href = currentWatchUrl;
+    }
+
+    function loadSettingsIntoUI() {
+      const defaultWorker = normalizeWorkerUrl(window.APP_CONFIG?.WORKER_URL || "");
+      const savedWorker = localStorage.getItem(LS.WORKER);
+      const workerUrl = savedWorker !== null ? savedWorker : defaultWorker;
+
+      let secret = localStorage.getItem(LS.SECRET);
+      if (!secret || secret.length < 8) {
+        secret = generateRandomSecret(24);
+        localStorage.setItem(LS.SECRET, secret);
+      }
+
+      const apiKey = localStorage.getItem(LS.API_KEY) || "";
+      const model = localStorage.getItem(LS.MODEL) || "gemini-4-hydrogen";
+      const customModel = localStorage.getItem(LS.CUSTOM_MODEL) || "";
+      const thinking = localStorage.getItem(LS.THINKING) || "fast";
+      const accessCode = localStorage.getItem(LS.ACCESS_CODE) || "";
+
+      el("apiKeyInput").value = apiKey;
+      el("workerUrlInput").value = workerUrl;
+      el("senderSecretInput").value = secret;
+      el("modelSelect").value = model;
+      el("customModelInput").value = customModel;
+      el("thinkingSelect").value = thinking;
+      el("accessCodeInput").value = accessCode;
+      el("customModelField").classList.toggle("hidden", model !== "custom");
+
+      if (!apiKey || !workerUrl || workerUrl.includes("twoj-nick")) {
+        el("settingsCard").classList.remove("hidden");
+        showStatus("Na start wklej swój klucz Gemini API i adres Workera w ustawieniach powyżej.", "info");
+      }
+
+      refreshWatchUrlDisplay();
+    }
+
+    function saveSettings() {
+      const apiKey = el("apiKeyInput").value.trim();
+      const workerUrl = normalizeWorkerUrl(el("workerUrlInput").value);
+      const secret = el("senderSecretInput").value.trim();
+      const model = el("modelSelect").value;
+      const customModel = el("customModelInput").value.trim();
+      const thinking = el("thinkingSelect").value;
+      const accessCode = el("accessCodeInput").value.trim();
+
+      if (secret.length < 8) {
+        showStatus("Kod nadawcy musi mieć minimum 8 znaków.", "err");
+        return;
+      }
+      if (workerUrl && !/^https?:\/\//i.test(workerUrl)) {
+        showStatus("Adres Workera musi zaczynać się od https://", "err");
+        return;
+      }
+
+      localStorage.setItem(LS.API_KEY, apiKey);
+      localStorage.setItem(LS.WORKER, workerUrl);
+      localStorage.setItem(LS.SECRET, secret);
+      localStorage.setItem(LS.MODEL, model);
+      localStorage.setItem(LS.CUSTOM_MODEL, customModel);
+      localStorage.setItem(LS.THINKING, thinking);
+      localStorage.setItem(LS.ACCESS_CODE, accessCode);
+
+      el("settingsCard").classList.add("hidden");
+      showStatus("Zapisano ustawienia lokalnie w telefonie.", "ok");
+      refreshWatchUrlDisplay();
+    }
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    async function compressImageFile(file, maxDim = 1280, quality = 0.82) {
+      let width, height, drawable, cleanup;
+
+      if (typeof createImageBitmap === "function") {
+        const bitmap = await createImageBitmap(file);
+        width = bitmap.width;
+        height = bitmap.height;
+        drawable = bitmap;
+        cleanup = () => bitmap.close();
+      } else {
+        const objUrl = URL.createObjectURL(file);
+        const img = await new Promise((resolve, reject) => {
+          const i = new Image();
+          i.onload = () => resolve(i);
+          i.onerror = reject;
+          i.src = objUrl;
+        });
+        width = img.naturalWidth || img.width;
+        height = img.naturalHeight || img.height;
+        drawable = img;
+        cleanup = () => URL.revokeObjectURL(objUrl);
+      }
+
+      try {
+        const scale = Math.min(1, maxDim / Math.max(width, height));
+        const targetW = Math.max(1, Math.round(width * scale));
+        const targetH = Math.max(1, Math.round(height * scale));
+
+        const canvas = document.createElement("canvas");
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(drawable, 0, 0, targetW, targetH);
+
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        const base64 = dataUrl.split(",")[1];
+        const approxBytes = Math.round((base64.length * 3) / 4);
+
+        return {
+          base64,
+          mimeType: "image/jpeg",
+          previewUrl: dataUrl,
+          targetW,
+          targetH,
+          originalSize: file.size,
+          compressedSize: approxBytes
+        };
+      } finally {
+        cleanup();
+      }
+    }
+
+    async function handleSelectedFile(file) {
+      if (!file) return;
+      try {
+        showStatus("Kompresuję zdjęcie...", "info");
+        const result = await compressImageFile(file);
+        compressedImage = result;
+        el("previewImg").src = result.previewUrl;
+        el("compressionInfo").textContent =
+          `${formatBytes(result.originalSize)} → ${formatBytes(result.compressedSize)} (${result.targetW}×${result.targetH})`;
+        el("previewBox").classList.add("visible");
+        hideStatus();
+      } catch (err) {
+        showStatus(`Nie udało się wczytać zdjęcia: ${err.message}`, "err");
+      }
+    }
+
+    function clearSelectedPhoto() {
+      compressedImage = null;
+      el("photoPickerInput").value = "";
+      el("cameraDirectInput").value = "";
+      el("previewImg").src = "";
+      el("previewBox").classList.remove("visible");
+    }
+
+    async function solveAndSend() {
+      const apiKey = (localStorage.getItem(LS.API_KEY) || "").trim();
+      const workerUrl = normalizeWorkerUrl(localStorage.getItem(LS.WORKER) || window.APP_CONFIG?.WORKER_URL || "");
+      const senderSecret = (localStorage.getItem(LS.SECRET) || "").trim();
+      const accessCode = (localStorage.getItem(LS.ACCESS_CODE) || "").trim();
+      const modelChoice = localStorage.getItem(LS.MODEL) || "gemini-4-hydrogen";
+      const model = modelChoice === "custom"
+        ? (localStorage.getItem(LS.CUSTOM_MODEL) || "gemini-4-hydrogen").trim()
+        : modelChoice;
+      const thinkingMode = localStorage.getItem(LS.THINKING) || "fast";
+
+      if (!apiKey) {
+        el("settingsCard").classList.remove("hidden");
+        showStatus("Najpierw wklej swój klucz Gemini API w ustawieniach.", "err");
+        return;
+      }
+      if (!workerUrl || workerUrl.includes("twoj-nick")) {
+        el("settingsCard").classList.remove("hidden");
+        showStatus("Wklej prawidłowy adres Cloudflare Workera w ustawieniach.", "err");
+        return;
+      }
+
+      const userPrompt = el("promptInput").value.trim();
+      if (!compressedImage && !userPrompt) {
+        showStatus("Zrób zdjęcie lub wpisz pytanie tekstowe.", "err");
+        return;
+      }
+
+      const finalPrompt = userPrompt
+        ? `${PRESETS[selectedPreset]}\n\nDodatkowe polecenie użytkownika: ${userPrompt}`
+        : PRESETS[selectedPreset];
+
+      const solveBtn = el("solveBtn");
+      solveBtn.disabled = true;
+      solveBtn.textContent = "⏳ Analizuję i wysyłam...";
+      showStatus(`Wysyłam do ${model}...`, "info");
+
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (accessCode) headers["X-Access-Code"] = accessCode;
+
+        const res = await fetch(`${workerUrl}/api/solve`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            senderSecret,
+            apiKey,
+            model,
+            thinkingMode,
+            prompt: finalPrompt,
+            imageBase64: compressedImage ? compressedImage.base64 : "",
+            imageMimeType: compressedImage ? compressedImage.mimeType : "image/jpeg"
+          })
+        });
+
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.ok) {
+          throw new Error(data?.error || `Błąd HTTP ${res.status}`);
+        }
+
+        el("answerPreview").textContent = data.item.answer;
+        el("resultMeta").textContent = `${data.item.model} • ${new Date(data.item.createdAt).toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}`;
+        el("resultCard").classList.remove("hidden");
+        showStatus("Gotowe! Odpowiedź czeka na Apple Watch (zniknie po 24h).", "ok");
+      } catch (err) {
+        showStatus(`Błąd: ${err.message}`, "err");
+      } finally {
+        solveBtn.disabled = false;
+        solveBtn.textContent = "🚀 Rozwiąż i wyślij na zegarek";
+      }
+    }
+
+    async function clearWatchHistory() {
+      const workerUrl = normalizeWorkerUrl(localStorage.getItem(LS.WORKER) || window.APP_CONFIG?.WORKER_URL || "");
+      const senderSecret = (localStorage.getItem(LS.SECRET) || "").trim();
+      const accessCode = (localStorage.getItem(LS.ACCESS_CODE) || "").trim();
+
+      if (!workerUrl || !senderSecret) return;
+
+      try {
+        const headers = { "Content-Type": "application/json" };
+        if (accessCode) headers["X-Access-Code"] = accessCode;
+
+        const res = await fetch(`${workerUrl}/api/result`, {
+          method: "DELETE",
+          headers,
+          body: JSON.stringify({ senderSecret })
+        });
+        const data = await res.json();
+        if (!res.ok || !data?.ok) throw new Error(data?.error || "Nie udało się wyczyścić");
+
+        el("resultCard").classList.add("hidden");
+        el("answerPreview").textContent = "";
+        showStatus("Usunięto wszystkie zapisane odpowiedzi z bazy KV.", "ok");
+      } catch (err) {
+        showStatus(`Błąd usuwania: ${err.message}`, "err");
+      }
+    }
+
+    async function shareWatchLink() {
+      if (!currentWatchUrl) return;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: "WatchAI — Apple Watch",
+            text: "Otwórz na Apple Watch:",
+            url: currentWatchUrl
+          });
+          return;
+        } catch (err) {
+          if (err.name === "AbortError") return;
+        }
+      }
+      // Fallback pod iMessage / SMS na iOS
+      window.location.href = `sms:&body=${encodeURIComponent(currentWatchUrl)}`;
+    }
+
+    async function copyWatchLink() {
+      if (!currentWatchUrl) return;
+      try {
+        await navigator.clipboard.writeText(currentWatchUrl);
+        showStatus("Skopiowano link na zegarek do schowka!", "ok");
+      } catch {
+        showStatus("Skopiuj link ręcznie z ramki powyżej.", "info");
+      }
+    }
+
+    // Eventy UI
+    el("toggleSettingsBtn").addEventListener("click", () => {
+      el("settingsCard").classList.toggle("hidden");
+    });
+
+    el("modelSelect").addEventListener("change", (e) => {
+      el("customModelField").classList.toggle("hidden", e.target.value !== "custom");
+    });
+
+    el("regenSecretBtn").addEventListener("click", () => {
+      el("senderSecretInput").value = generateRandomSecret(24);
+    });
+
+    el("saveSettingsBtn").addEventListener("click", saveSettings);
+
+    el("pickPhotoBtn").addEventListener("click", () => el("photoPickerInput").click());
+    el("directCameraBtn").addEventListener("click", () => el("cameraDirectInput").click());
+    el("photoPickerInput").addEventListener("change", (e) => handleSelectedFile(e.target.files?.[0]));
+    el("cameraDirectInput").addEventListener("change", (e) => handleSelectedFile(e.target.files?.[0]));
+    el("clearPhotoBtn").addEventListener("click", clearSelectedPhoto);
+
+    el("presetChips").addEventListener("click", (e) => {
+      const btn = e.target.closest(".chip");
+      if (!btn) return;
+      selectedPreset = btn.dataset.preset;
+      document.querySelectorAll(".chip").forEach((c) => c.classList.toggle("active", c === btn));
+    });
+
+    el("solveBtn").addEventListener("click", solveAndSend);
+    el("shareWatchBtn").addEventListener("click", shareWatchLink);
+    el("copyWatchBtn").addEventListener("click", copyWatchLink);
+    el("clearWatchBtn").addEventListener("click", clearWatchHistory);
+
+    loadSettingsIntoUI();
+  </script>
+</body>
+</html>
