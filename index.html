@@ -1,26 +1,32 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="WatchAI" />
-  <meta name="theme-color" content="#0b0c10" />
+  <meta name="theme-color" content="#08080a" />
   <title>WatchAI</title>
   <script src="./config.js"></script>
   <style>
     :root {
-      --bg: #0b0c10;
-      --card: #16181f;
-      --card-2: #1f222c;
-      --border: #2a2e3b;
-      --text: #f3f4f6;
-      --muted: #9ca3af;
+      --bg: #08080a;
+      --surface: #111114;
+      --surface-2: #18181c;
+      --surface-hover: #202026;
+      --input-bg: #09090b;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.14);
+      --text: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --muted: #71717a;
       --accent: #0a84ff;
+      --accent-soft: rgba(10, 132, 255, 0.14);
       --green: #30d158;
       --red: #ff453a;
       --radius: 16px;
+      --radius-sm: 11px;
     }
 
     * {
@@ -28,17 +34,27 @@
       -webkit-tap-highlight-color: transparent;
     }
 
+    html {
+      background: var(--bg);
+      color-scheme: dark;
+    }
+
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-      background: var(--bg);
+      min-height: 100dvh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse 90% 45% at 50% -10%, rgba(10, 132, 255, 0.07), transparent 70%),
+        var(--bg);
       color: var(--text);
-      line-height: 1.45;
-      padding: env(safe-area-inset-top, 16px) 16px calc(env(safe-area-inset-bottom, 16px) + 28px);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      padding: max(env(safe-area-inset-top), 14px) 16px calc(max(env(safe-area-inset-bottom), 16px) + 28px);
     }
 
     .app {
-      max-width: 540px;
+      max-width: 480px;
       margin: 0 auto;
     }
 
@@ -46,7 +62,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 0 16px;
+      padding: 6px 0 18px;
     }
 
     .brand {
@@ -56,99 +72,173 @@
     }
 
     .brand-badge {
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #0a84ff, #5e5ce6);
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #27272a 0%, #16161a 100%);
+      border: 1px solid var(--border-strong);
+      color: var(--text);
       display: grid;
       place-items: center;
-      font-size: 18px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
 
     h1 {
-      font-size: 20px;
+      font-size: 17px;
       margin: 0;
-      font-weight: 700;
-      letter-spacing: -0.2px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
     }
 
     .icon-btn {
-      background: var(--card);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 12px;
+      color: var(--text-secondary);
+      border-radius: 10px;
       padding: 8px 12px;
-      font-size: 14px;
-      font-weight: 600;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
       cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.97);
+    }
+
+    .icon-btn-square {
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      flex-shrink: 0;
     }
 
     .card {
-      background: var(--card);
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 14px;
-      margin-bottom: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.03),
+        0 12px 30px -16px rgba(0, 0, 0, 0.75);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
     }
 
     .card-title {
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.07em;
       color: var(--muted);
-      margin: 0 0 10px;
+      margin: 0;
+    }
+
+    .section-sub {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 16px 0;
     }
 
     .photo-actions {
       display: grid;
       grid-template-columns: 1fr auto;
-      gap: 10px;
+      gap: 8px;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 7px;
       width: 100%;
-      border: none;
-      border-radius: 14px;
-      padding: 14px 16px;
-      font-size: 16px;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 12px 15px;
+      font-size: 14px;
       font-weight: 600;
+      font-family: inherit;
+      letter-spacing: -0.01em;
       cursor: pointer;
+      text-decoration: none;
       color: #fff;
       background: var(--accent);
-      transition: opacity 0.15s, transform 0.1s;
+      transition: opacity 0.15s ease, background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
     }
 
     .btn:active { transform: scale(0.985); }
-    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .btn-secondary {
-      background: var(--card-2);
-      border: 1px solid var(--border);
+      background: var(--surface-2);
+      border-color: var(--border);
       color: var(--text);
+      font-weight: 500;
     }
 
-    .btn-success {
-      background: #1f8b4c;
+    .btn-primary-light {
+      background: #f4f4f5;
+      color: #09090b;
+      padding: 13px 16px;
+      font-size: 15px;
+      border-radius: 12px;
     }
 
     .btn-danger {
-      background: rgba(255, 69, 58, 0.16);
-      border: 1px solid rgba(255, 69, 58, 0.35);
+      background: rgba(255, 69, 58, 0.08);
+      border-color: rgba(255, 69, 58, 0.22);
       color: #ff6961;
+      font-weight: 500;
     }
 
     .btn-small {
-      padding: 10px 12px;
-      font-size: 14px;
-      border-radius: 11px;
+      padding: 9px 12px;
+      font-size: 13px;
+      border-radius: 10px;
     }
 
-    /* Siatka wielu zdjęć */
+    @media (hover: hover) {
+      .icon-btn:hover {
+        background: var(--surface-2);
+        border-color: var(--border-strong);
+        color: var(--text);
+      }
+      .btn-secondary:hover {
+        background: var(--surface-hover);
+        border-color: var(--border-strong);
+      }
+      .btn-primary-light:hover:not(:disabled) {
+        background: #ffffff;
+      }
+      .btn-danger:hover {
+        background: rgba(255, 69, 58, 0.15);
+        border-color: rgba(255, 69, 58, 0.35);
+      }
+      .chip:hover:not(.active) {
+        border-color: var(--border-strong);
+        color: var(--text);
+      }
+    }
+
+    /* Multi-image preview grid */
     .preview-area {
       margin-top: 12px;
       display: none;
@@ -165,20 +255,21 @@
       font-size: 12px;
       color: var(--muted);
       margin-bottom: 8px;
+      font-variant-numeric: tabular-nums;
     }
 
     .preview-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
       gap: 8px;
     }
 
     .thumb-card {
       position: relative;
-      border-radius: 12px;
+      border-radius: 10px;
       overflow: hidden;
       background: #000;
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-strong);
       aspect-ratio: 1 / 1;
     }
 
@@ -193,14 +284,17 @@
       position: absolute;
       top: 5px;
       right: 5px;
-      width: 24px;
-      height: 24px;
+      width: 21px;
+      height: 21px;
       border-radius: 999px;
-      border: none;
-      background: rgba(0, 0, 0, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(9, 9, 11, 0.78);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       color: #fff;
-      font-size: 13px;
-      font-weight: 700;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1;
       cursor: pointer;
       display: grid;
       place-items: center;
@@ -211,148 +305,232 @@
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
-      color: #e5e7eb;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+      color: #e4e4e7;
       font-size: 10px;
-      padding: 3px 6px;
+      font-weight: 500;
+      font-variant-numeric: tabular-nums;
+      padding: 10px 4px 4px;
       text-align: center;
     }
 
     .clear-img {
       background: none;
       border: none;
-      color: var(--red);
-      font-weight: 600;
-      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 12px;
+      font-family: inherit;
       cursor: pointer;
-      padding: 2px 6px;
+      padding: 2px 4px;
+      transition: color 0.15s ease;
     }
 
+    .clear-img:active {
+      color: var(--red);
+    }
+
+    /* Mode chips */
     .chips {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 6px;
+      margin-bottom: 12px;
     }
 
     .chip {
-      background: var(--card-2);
+      background: transparent;
       border: 1px solid var(--border);
-      color: var(--text);
+      color: var(--text-secondary);
       border-radius: 999px;
-      padding: 7px 12px;
+      padding: 6px 12px;
       font-size: 13px;
       font-weight: 500;
+      font-family: inherit;
       cursor: pointer;
+      transition: all 0.15s ease;
     }
 
     .chip.active {
-      background: rgba(10, 132, 255, 0.22);
-      border-color: var(--accent);
+      background: var(--accent-soft);
+      border-color: rgba(10, 132, 255, 0.45);
       color: #60a5fa;
     }
 
     textarea, input[type="text"], input[type="password"], select {
       width: 100%;
-      background: #0e1015;
+      background: var(--input-bg);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: var(--radius-sm);
       color: var(--text);
-      padding: 11px 12px;
-      font-size: 15px;
+      padding: 10px 12px;
+      font-size: 16px;
       font-family: inherit;
       outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 11px center;
+      padding-right: 34px;
+    }
+
+    textarea::placeholder,
+    input::placeholder {
+      color: var(--muted);
     }
 
     textarea:focus, input:focus, select:focus {
-      border-color: var(--accent);
+      border-color: rgba(10, 132, 255, 0.7);
+      box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.15);
     }
 
     textarea {
-      min-height: 76px;
+      min-height: 86px;
       resize: vertical;
+      line-height: 1.5;
+      font-size: 15px;
     }
 
     .field {
-      margin-bottom: 12px;
+      margin-bottom: 13px;
     }
 
     .field label {
       display: block;
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 5px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
       font-weight: 500;
+    }
+
+    .secret-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
 
     .checkbox-row {
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 14px;
-      color: var(--text);
+      font-size: 13.5px;
+      color: var(--text-secondary);
       cursor: pointer;
-      margin-bottom: 14px;
+      margin: 4px 0 14px;
+      user-select: none;
     }
 
     .checkbox-row input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
       width: 18px;
       height: 18px;
-      accent-color: var(--accent);
+      flex-shrink: 0;
+      border-radius: 6px;
+      border: 1px solid var(--border-strong);
+      background: var(--input-bg);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .checkbox-row input[type="checkbox"]:checked {
+      background-color: var(--accent);
+      border-color: var(--accent);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
     }
 
     .hint {
       font-size: 12px;
       color: var(--muted);
-      margin-top: 4px;
+      margin-top: 5px;
+      line-height: 1.4;
+    }
+
+    .hint a {
+      color: #60a5fa;
+      text-decoration: none;
+    }
+
+    .hint a:hover {
+      text-decoration: underline;
     }
 
     .status {
       display: none;
-      padding: 12px 14px;
+      padding: 11px 13px;
       border-radius: 12px;
-      font-size: 14px;
-      margin-bottom: 14px;
+      font-size: 13px;
+      line-height: 1.4;
+      margin-bottom: 12px;
       font-weight: 500;
     }
 
     .status.visible { display: block; }
-    .status.info { background: rgba(10, 132, 255, 0.16); border: 1px solid rgba(10, 132, 255, 0.4); color: #93c5fd; }
-    .status.ok { background: rgba(48, 209, 88, 0.15); border: 1px solid rgba(48, 209, 88, 0.4); color: #86efac; }
-    .status.err { background: rgba(255, 69, 58, 0.15); border: 1px solid rgba(255, 69, 58, 0.4); color: #fca5a5; }
+    .status.info { background: rgba(10, 132, 255, 0.1); border: 1px solid rgba(10, 132, 255, 0.28); color: #93c5fd; }
+    .status.ok { background: rgba(48, 209, 88, 0.1); border: 1px solid rgba(48, 209, 88, 0.28); color: #86efac; }
+    .status.err { background: rgba(255, 69, 58, 0.1); border: 1px solid rgba(255, 69, 58, 0.28); color: #fca5a5; }
 
     .answer-box {
       white-space: pre-wrap;
-      font-size: 15px;
-      line-height: 1.5;
-      background: #000;
+      font-size: 14.5px;
+      line-height: 1.55;
+      color: var(--text);
+      background: var(--input-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 12px;
-      margin-top: 8px;
+      padding: 13px 14px;
     }
 
     .watch-link-box {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .url-pill {
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 12px;
-      background: #0e1015;
+      font-size: 11.5px;
+      line-height: 1.45;
+      background: var(--input-bg);
       border: 1px solid var(--border);
-      padding: 9px 10px;
+      padding: 10px 12px;
       border-radius: 10px;
       word-break: break-all;
-      color: #cbd5e1;
+      color: var(--text-secondary);
+      user-select: all;
     }
 
     .row-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
+    }
+
+    .row-2 > * {
+      min-width: 0;
+    }
+
+    .secret-row input {
+      min-width: 0;
+    }
+
+    .result-meta {
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .submit-wrap {
+      margin-top: 12px;
     }
 
     .hidden { display: none !important; }
@@ -362,132 +540,199 @@
   <div class="app">
     <header>
       <div class="brand">
-        <div class="brand-badge">⌚</div>
+        <div class="brand-badge">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="6" y="6" width="12" height="12" rx="3"></rect>
+            <path d="M9 6V3.5A1.5 1.5 0 0 1 10.5 2h3A1.5 1.5 0 0 1 15 3.5V6"></path>
+            <path d="M9 18v2.5A1.5 1.5 0 0 0 10.5 22h3a1.5 1.5 0 0 0 1.5-1.5V18"></path>
+          </svg>
+        </div>
         <h1>WatchAI</h1>
       </div>
-      <button type="button" class="icon-btn" id="toggleSettingsBtn">⚙️ Ustawienia</button>
+      <button type="button" class="icon-btn" id="toggleSettingsBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        Settings
+      </button>
     </header>
 
     <div id="statusBanner" class="status"></div>
 
-    <!-- PANEL USTAWIEŃ -->
+    <!-- SETTINGS & APPLE WATCH CONTROL PANEL -->
     <section id="settingsCard" class="card hidden">
-      <h2 class="card-title">Konfiguracja</h2>
+      <div class="section-header">
+        <h2 class="card-title">Configuration</h2>
+      </div>
 
       <div class="field">
-        <label for="apiKeyInput">Twój klucz Gemini API</label>
+        <label for="apiKeyInput">Gemini API Key</label>
         <input id="apiKeyInput" type="password" placeholder="AIzaSy..." autocomplete="off" />
         <div class="hint">
-          Darmowy klucz wygenerujesz na <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" style="color:#60a5fa;">aistudio.google.com</a>. Zostaje tylko w pamięci telefonu.
+          Generate a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com</a>. Stored locally on your device.
         </div>
       </div>
 
       <div class="row-2">
         <div class="field">
-          <label for="modelSelect">Model Gemini</label>
+          <label for="modelSelect">Model</label>
           <select id="modelSelect">
-            <option value="gemini-4-hydrogen">gemini-4-hydrogen (Domyślny)</option>
+            <option value="gemini-4-hydrogen">gemini-4-hydrogen (Default)</option>
             <option value="gemini-3.8-flash">gemini-3.8-flash</option>
-            <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Najszybszy)</option>
-            <option value="gemini-4-carbon">gemini-4-carbon (Płatny API)</option>
-            <option value="custom">Własny model...</option>
+            <option value="gemini-3.5-flash-lite">gemini-3.5-flash-lite (Fastest)</option>
+            <option value="gemini-4-carbon">gemini-4-carbon (Paid API)</option>
+            <option value="custom">Custom model...</option>
           </select>
         </div>
 
         <div class="field">
-          <label for="thinkingSelect">Tryb myślenia</label>
+          <label for="thinkingSelect">Thinking Mode</label>
           <select id="thinkingSelect">
-            <option value="basic">basic (domyślny)</option>
-            <option value="low">low</option>
-            <option value="medium">medium</option>
-            <option value="high">high</option>
+            <option value="basic">Basic (Default)</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
           </select>
         </div>
       </div>
 
       <div id="customModelField" class="field hidden">
-        <label for="customModelInput">Własna nazwa modelu API</label>
-        <input id="customModelInput" type="text" placeholder="np. gemini-4-hydrogen" />
+        <label for="customModelInput">Custom Model ID</label>
+        <input id="customModelInput" type="text" placeholder="e.g. gemini-4-hydrogen" />
       </div>
 
       <label class="checkbox-row">
         <input type="checkbox" id="autoFallbackCheck" checked />
-        <span>Automatyczny model zapasowy przy błędzie 503 lub zawieszeniu</span>
+        <span>Auto-fallback model on 503 error or timeout</span>
       </label>
 
       <div class="field">
-        <label for="senderSecretInput">Twój prywatny kod nadawcy (generuje link na Watch)</label>
-        <div style="display:flex; gap:8px;">
+        <label for="senderSecretInput">Private Sender Secret</label>
+        <div class="secret-row">
           <input id="senderSecretInput" type="text" autocomplete="off" />
-          <button type="button" id="regenSecretBtn" class="icon-btn" title="Wygeneruj nowy kod">🎲</button>
+          <button type="button" id="regenSecretBtn" class="icon-btn icon-btn-square" title="Generate new secret" aria-label="Generate new secret">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12a9 9 0 1 1-2.64-6.36"></path>
+              <polyline points="21 3 21 9 15 9"></polyline>
+            </svg>
+          </button>
         </div>
-        <div class="hint">Jeśli wygenerujesz nowy kod, wyślij zaktualizowany link na zegarek.</div>
+        <div class="hint">Derives your private Watch link. Re-send the link if regenerated.</div>
       </div>
 
-      <button type="button" id="saveSettingsBtn" class="btn">💾 Zapisz ustawienia</button>
+      <button type="button" id="saveSettingsBtn" class="btn">Save Settings</button>
+
+      <div class="divider"></div>
+
+      <!-- APPLE WATCH CONTROL -->
+      <div class="section-header">
+        <h2 class="card-title">Apple Watch</h2>
+        <span class="section-sub">Endpoint &amp; Sync</span>
+      </div>
+
+      <div class="watch-link-box">
+        <div id="watchUrlDisplay" class="url-pill">Complete settings to generate link...</div>
+        <div class="row-2">
+          <button type="button" id="shareWatchBtn" class="btn btn-secondary btn-small">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+              <polyline points="16 6 12 2 8 6"></polyline>
+              <line x1="12" y1="2" x2="12" y2="15"></line>
+            </svg>
+            Send to Watch
+          </button>
+          <button type="button" id="copyWatchBtn" class="btn btn-secondary btn-small">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy Link
+          </button>
+        </div>
+        <div class="row-2">
+          <a id="openWatchLink" href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-small">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            Preview Watch
+          </a>
+          <button type="button" id="clearWatchBtn" class="btn btn-danger btn-small">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+            Clear Watch
+          </button>
+        </div>
+      </div>
     </section>
 
-    <!-- GŁÓWNA KARTA WYSYŁKI -->
+    <!-- MAIN COMPOSER -->
     <section class="card">
-      <h2 class="card-title">1. Zdjęcia (do 5 naraz)</h2>
+      <div class="section-header">
+        <h2 class="card-title">Attachments</h2>
+        <span class="section-sub">Up to 5 images</span>
+      </div>
 
       <input id="photoPickerInput" type="file" accept="image/*" multiple class="hidden" />
       <input id="cameraDirectInput" type="file" accept="image/*" capture="environment" class="hidden" />
 
       <div class="photo-actions">
-        <button type="button" id="pickPhotoBtn" class="btn">📷 Galeria / Zrób zdjęcie</button>
-        <button type="button" id="directCameraBtn" class="btn btn-secondary" style="width:auto;" title="Zrób kolejne zdjęcie aparatem">⚡ Aparat</button>
+        <button type="button" id="pickPhotoBtn" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <path d="m21 15-5-5L5 21"></path>
+          </svg>
+          Add Photos
+        </button>
+        <button type="button" id="directCameraBtn" class="btn btn-secondary" style="width:auto;" title="Take photo with camera">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+            <circle cx="12" cy="13" r="4"></circle>
+          </svg>
+          Camera
+        </button>
       </div>
 
       <div id="previewArea" class="preview-area">
         <div class="preview-header">
-          <span id="compressionInfo">0 zdjęć</span>
-          <button type="button" id="clearAllPhotosBtn" class="clear-img">✕ Wyczyść wszystkie</button>
+          <span id="compressionInfo">0 images</span>
+          <button type="button" id="clearAllPhotosBtn" class="clear-img">Clear all</button>
         </div>
         <div id="previewGrid" class="preview-grid"></div>
       </div>
-    </section>
 
-    <section class="card">
-      <h2 class="card-title">2. Szybki tryb lub pytanie</h2>
+      <div class="divider"></div>
+
+      <div class="section-header">
+        <h2 class="card-title">Prompt</h2>
+      </div>
 
       <div class="chips" id="presetChips">
-        <button type="button" class="chip active" data-preset="short">📝 Krótko (Watch)</button>
-        <button type="button" class="chip" data-preset="answer_only">🎯 Tylko wynik</button>
-        <button type="button" class="chip" data-preset="explain">📚 Krok po kroku</button>
-        <button type="button" class="chip" data-preset="translate">🌐 Przetłumacz PL</button>
+        <button type="button" class="chip active" data-preset="short">Concise</button>
+        <button type="button" class="chip" data-preset="answer_only">Answer Only</button>
+        <button type="button" class="chip" data-preset="explain">Step by Step</button>
+        <button type="button" class="chip" data-preset="translate">Translate (PL)</button>
       </div>
 
-      <textarea id="promptInput" placeholder="Opcjonalnie doprecyzuj (np. 'Porównaj te 2 strony') albo wpisz samo pytanie bez zdjęć..."></textarea>
+      <textarea id="promptInput" placeholder="Optional instructions (e.g. 'Compare these 2 pages') or ask a question without images..."></textarea>
 
-      <div style="margin-top: 12px;">
-        <button type="button" id="solveBtn" class="btn btn-success">🚀 Rozwiąż i wyślij na zegarek</button>
+      <div class="submit-wrap">
+        <button type="button" id="solveBtn" class="btn btn-primary-light">Send to Watch</button>
       </div>
     </section>
 
-    <!-- PODGLĄD WYNIKU NA IPHONE -->
+    <!-- RESPONSE PREVIEW -->
     <section id="resultCard" class="card hidden">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-        <h2 class="card-title" style="margin:0;">Ostatnia odpowiedź (już na zegarku)</h2>
-        <span id="resultMeta" style="font-size:12px; color:var(--muted);"></span>
+      <div class="section-header">
+        <h2 class="card-title">Latest Response</h2>
+        <span id="resultMeta" class="result-meta"></span>
       </div>
       <div id="answerPreview" class="answer-box"></div>
-    </section>
-
-    <!-- LINK NA APPLE WATCH -->
-    <section class="card">
-      <h2 class="card-title">⌚ Link na Apple Watch</h2>
-      <div class="watch-link-box">
-        <div id="watchUrlDisplay" class="url-pill">Uzupełnij ustawienia, aby wygenerować link...</div>
-        <div class="row-2">
-          <button type="button" id="shareWatchBtn" class="btn btn-secondary btn-small">💬 Wyślij na zegarek</button>
-          <button type="button" id="copyWatchBtn" class="btn btn-secondary btn-small">📋 Kopiuj link</button>
-        </div>
-        <div class="row-2">
-          <a id="openWatchLink" href="#" target="_blank" rel="noopener" class="btn btn-secondary btn-small" style="text-decoration:none;">👀 Podgląd widoku Watch</a>
-          <button type="button" id="clearWatchBtn" class="btn btn-danger btn-small">🗑️ Wyczyść zegarek</button>
-        </div>
-      </div>
     </section>
   </div>
 
